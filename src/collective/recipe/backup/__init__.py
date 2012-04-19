@@ -69,29 +69,13 @@ class Recipe(object):
         options.setdefault('buildout_dir', buildout_dir)
         options.setdefault('location', backup_dir)
         options.setdefault('snapshotlocation', snapshot_dir)
-        options.setdefault('blobbackuplocation', blob_backup_dir)
-        options.setdefault('blobsnapshotlocation', blob_snapshot_dir)
-        # These must be four distinct locations.
-        locations = {}
-        for opt in ('location', 'snapshotlocation',
-                    'blobbackuplocation', 'blobsnapshotlocation'):
-            value = options.get(opt)
-            if value:
-                locations[opt] = value
-        if len(locations.keys()) != len(set(locations.values())):
-            raise zc.buildout.UserError(
-                "These must be four distinct locations:\n",
-                '\n'.join([('%s = %s' % (k, v)) for (k, v) in
-                             sorted(locations.items())]))
         options.setdefault('keep', '2')
-        options.setdefault('keep_blob_days', '14')  # two weeks
         options.setdefault('datafs', datafs)
         options.setdefault('full', 'false')
         options.setdefault('debug', 'false')
         options.setdefault('gzip', 'true')
         options.setdefault('additional_filestorages', '')
         options.setdefault('enable_snapshotrestore', 'true')
-        options.setdefault('use_rsync', 'true')
         options.setdefault('only_blobs', 'false')
         # Accept both blob-storage (used by plone.recipe.zope2instance
         # and friends) and blob_storage (as we use underscores
@@ -148,7 +132,7 @@ class Recipe(object):
         options['restore_name'] = restore_name
         options['snapshotrestore_name'] = snapshotrestore_name
         check_for_true(options, ['full', 'debug', 'gzip', 'only_blobs',
-                                 'backup_blobs', 'use_rsync'])
+                                 'backup_blobs'])
 
         # For site_py_dest in scripts generated with buildout 1.5+:
         options['parts-directory'] = os.path.join(
@@ -169,23 +153,6 @@ class Recipe(object):
             if not os.path.isdir(snapshot_location):
                 os.makedirs(snapshot_location)
                 logger.info('Created %s', snapshot_location)
-
-        # Blob backup.
-        if self.options['backup_blobs'] == 'True' and \
-               self.options['blob_storage']:
-            blob_backup_location = construct_path(
-                buildout_dir, self.options['blobbackuplocation'])
-            blob_snapshot_location = construct_path(
-                buildout_dir, self.options['blobsnapshotlocation'])
-            if not os.path.isdir(blob_backup_location):
-                os.makedirs(blob_backup_location)
-                logger.info('Created %s', blob_backup_location)
-            if not os.path.isdir(blob_snapshot_location):
-                os.makedirs(blob_snapshot_location)
-                logger.info('Created %s', blob_snapshot_location)
-        else:
-            blob_backup_location = ''
-            blob_snapshot_location = ''
 
         additional = self.options['additional_filestorages']
         if additional:
@@ -224,11 +191,8 @@ logging.basicConfig(level=loglevel,
         bin_dir=%(bin-directory)r,
         datafs=%(datafs)r,
         keep=%(keep)s,
-        keep_blob_days=%(keep_blob_days)s,
         backup_location=%(backup_location)r,
         snapshot_location=%(snapshot_location)r,
-        blob_backup_location=%(blob_backup_location)r,
-        blob_snapshot_location=%(blob_snapshot_location)r,
         blob_storage_source=%(blob_storage_source)r,
         full=%(full)s,
         verbose=%(debug)s,
@@ -236,7 +200,6 @@ logging.basicConfig(level=loglevel,
         additional=%(additional)r,
         only_blobs=%(only_blobs)s,
         backup_blobs=%(backup_blobs)s,
-        use_rsync=%(use_rsync)s,
         """
         # Work with a copy of the options, for safety.
         opts = self.options.copy()
@@ -244,8 +207,6 @@ logging.basicConfig(level=loglevel,
         opts['datafs'] = datafs
         opts['backup_location'] = backup_location
         opts['snapshot_location'] = snapshot_location
-        opts['blob_backup_location'] = blob_backup_location
-        opts['blob_snapshot_location'] = blob_snapshot_location
         opts['blob_storage_source'] = opts['blob_storage']
         opts['additional'] = additional
 
@@ -281,6 +242,17 @@ logging.basicConfig(level=loglevel,
             dest=dest, working_set=working_set, executable=executable,
             site_py_dest=site_py_dest, initialization=initialization,
             script_arguments=script_arguments)
+
+        # Create repobo script
+        if opts['backup_blobs'] == 'True':
+            reqs = [('repobo',
+                     'collective.recipe.backup.repobo',
+                     'main')]
+            repobo_args = dict(
+                dest=dest, working_set=working_set, executable=executable,
+                site_py_dest=site_py_dest, initialization="", reqs=reqs,
+                script_arguments="sys.argv[1:]")
+            generated += create_script(**repobo_args)
 
         # Create backup script
         reqs = [(self.options['backup_name'],

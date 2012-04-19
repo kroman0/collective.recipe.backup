@@ -9,7 +9,7 @@ from setuptools import setup, find_packages
 def read(*rnames):
     return open(os.path.join(*rnames)).read()
 
-version = '2.5dev'
+version = '3.0dev'
 
 long_description = (
     read('README.txt')
@@ -27,9 +27,10 @@ long_description = (
 entry_point = 'collective.recipe.backup:Recipe'
 entry_points = {
     'zc.buildout': ["default = %s" % entry_point],
-    #'console_scripts':[
+    'console_scripts':[
+            'repobo = collective.recipe.backup.repobo:main'
     #        'backup = collective.recipe.backup.repozorunner:main'
-    #        ]
+            ]
     }
 
 tests_require=['zope.testing', 'zc.buildout', 'zc.recipe.egg']

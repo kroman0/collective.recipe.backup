@@ -3,17 +3,16 @@
 import logging
 import sys
 
-from collective.recipe.backup import copyblobs
 from collective.recipe.backup import repozorunner
+from collective.recipe.backup import repoborunner
 from collective.recipe.backup import utils
 
 logger = logging.getLogger('backup')
 
 
-def backup_main(bin_dir, datafs, backup_location, keep, full,
-                verbose, gzip, additional, blob_backup_location,
-                blob_storage_source, backup_blobs, only_blobs, use_rsync,
-                keep_blob_days=0, **kwargs):
+def backup_main(bin_dir, datafs, backup_location, keep, full, verbose, gzip,
+                additional, blob_storage_source, backup_blobs, only_blobs,
+                **kwargs):
     """Main method, gets called by generated bin/backup."""
     if not only_blobs:
         result = repozorunner.backup_main(
@@ -25,21 +24,16 @@ def backup_main(bin_dir, datafs, backup_location, keep, full,
 
     if not backup_blobs:
         return
-    if not blob_backup_location:
-        logger.error("No blob backup location specified")
-        sys.exit(1)
     if not blob_storage_source:
         logger.error("No blob storage source specified")
         sys.exit(1)
-    logger.info("Please wait while backing up blobs from %s to %s",
-                blob_storage_source, blob_backup_location)
-    copyblobs.backup_blobs(blob_storage_source, blob_backup_location, full,
-                           use_rsync, keep=keep, keep_blob_days=keep_blob_days)
+    result = repoborunner.backup_main(bin_dir, blob_storage_source,
+                                      backup_location, keep, full, verbose,
+                                      gzip)
 
 
 def snapshot_main(bin_dir, datafs, snapshot_location, keep, verbose, gzip,
-                  additional, blob_snapshot_location, blob_storage_source,
-                  backup_blobs, only_blobs, use_rsync, keep_blob_days=0,
+                  additional, blob_storage_source, backup_blobs, only_blobs,
                   **kwargs):
     """Main method, gets called by generated bin/snapshotbackup."""
     if not only_blobs:
@@ -51,22 +45,16 @@ def snapshot_main(bin_dir, datafs, snapshot_location, keep, verbose, gzip,
                          "blobs.")
     if not backup_blobs:
         return
-    if not blob_snapshot_location:
-        logger.error("No blob snaphot location specified")
-        sys.exit(1)
     if not blob_storage_source:
         logger.error("No blob storage source specified")
         sys.exit(1)
-    logger.info("Please wait while making snapshot of blobs from %s to %s",
-                blob_storage_source, blob_snapshot_location)
-    copyblobs.backup_blobs(blob_storage_source, blob_snapshot_location,
-                           full=True, use_rsync=use_rsync, keep=keep,
-                           keep_blob_days=keep_blob_days)
+    result = repoborunner.backup_main(bin_dir, blob_storage_source,
+                                      snapshot_location, keep, full, verbose,
+                                      gzip)
 
 
 def restore_main(bin_dir, datafs, backup_location, verbose, additional,
-                 blob_backup_location, blob_storage_source, backup_blobs,
-                 only_blobs, use_rsync, **kwargs):
+                 blob_storage_source, backup_blobs, only_blobs, **kwargs):
     """Main method, gets called by generated bin/restore."""
     date = None
     if len(sys.argv) > 1:
@@ -95,16 +83,11 @@ def restore_main(bin_dir, datafs, backup_location, verbose, additional,
 
     if not backup_blobs:
         return
-    if not blob_backup_location:
-        logger.error("No blob backup location specified")
-        sys.exit(1)
     if not blob_storage_source:
         logger.error("No blob storage source specified")
         sys.exit(1)
-    logger.info("Restoring blobs from %s to %s", blob_backup_location,
-                blob_storage_source)
-    copyblobs.restore_blobs(blob_backup_location, blob_storage_source,
-                            use_rsync=use_rsync, date=date)
+    result = repoborunner.restore_main(bin_dir, blob_storage_source,
+                                       backup_location, verbose, date)
 
 
 def snapshot_restore_main(*args, **kwargs):
@@ -115,5 +98,4 @@ def snapshot_restore_main(*args, **kwargs):
     """
     # Override the locations:
     kwargs['backup_location'] = kwargs['snapshot_location']
-    kwargs['blob_backup_location'] = kwargs['blob_snapshot_location']
     return restore_main(*args, **kwargs)
