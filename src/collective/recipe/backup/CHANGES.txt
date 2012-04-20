@@ -1,3 +1,13 @@
+3.0 (unreleased)
+================
+
+- Rewrite collective.recipe.backup with repobo support. [kroman0]
+
+- Fixed cleanup blobstorage in repobo script. [kroman0]
+
+- Fixed tests and repoborunner. [kroman0]
+
+
 2.5 (unreleased)
 ================
 

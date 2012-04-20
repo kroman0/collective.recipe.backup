@@ -27,10 +27,9 @@ long_description = (
 entry_point = 'collective.recipe.backup:Recipe'
 entry_points = {
     'zc.buildout': ["default = %s" % entry_point],
-    'console_scripts':[
-            'repobo = collective.recipe.backup.repobo:main'
+    #'console_scripts':[
     #        'backup = collective.recipe.backup.repozorunner:main'
-            ]
+    #        ]
     }
 
 tests_require=['zope.testing', 'zc.buildout', 'zc.recipe.egg']

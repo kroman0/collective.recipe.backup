@@ -225,25 +225,10 @@ location
     Location where backups are stored. Defaults to ``var/backups`` inside the
     buildout directory.
 
-blobbackuplocation 
-    Directory where the blob storage will be backed up to.  Defaults
-    to ``var/blobstoragebackups`` inside the buildout directory.
-
 keep
     Number of full backups to keep. Defaults to ``2``, which means that the
     current and the previous full backup are kept. Older backups are removed,
     including their incremental backups. Set it to ``0`` to keep all backups.
-
-keep_blob_days
-    Number of *days* of blob backups to keep.  Defaults to ``14``, so
-    two weeks.  This is **only** used for partial (full=False)
-    backups, so this is what gets used normally when you do a
-    ``bin/backup``.  This option has been added in 2.2.  For full
-    backups (snapshots) we just use the ``keep`` option.  Recommended
-    is to keep these values in sync with how often you do a zeopack on
-    the Data.fs, according to the formula ``keep *
-    days_between_zeopacks = keep_blob_days``.  The default matches one
-    zeopack per seven days (``2*7=14``).
 
 datafs
     In case the ``Data.fs`` isn't in the default ``var/filestorage/Data.fs``
@@ -306,24 +291,12 @@ backup_blobs
     find one by looking in the other buildout parts, we default to
     False, otherwise to True.
 
-blobsnapshotlocation
-    Directory where the blob storage snapshots will be created.
-    Defaults to ``var/blobstoragesnapshots`` inside the buildout
-    directory.
-
 only_blobs
     Only backup the blobstorage, not the Data.fs filestorage.  False
     by default.  May be a useful option if for example you want to
     create one bin/filestoragebackup script and one
     bin/blobstoragebackup script, using only_blobs in one and
     backup_blobs in the other.
-
-use_rsync
-    Use ``rsync`` with hard links for backing up the blobs.  Default is
-    true.  ``rsync`` is probably not available on all machines though, and
-    I guess hard links will not work on Windows.  When you set this to
-    false, we fall back to a simple copy (``shutil.copytree`` from
-    python in fact).
 
 An example buildout snippet using most options, except the blob
 options would look like this::
@@ -445,17 +418,3 @@ case you want to separate this into several scripts::
 
 With this setup ``bin/filebackup`` now only backs up the filestorage
 and ``bin/blobbackup`` only backs up the blobstorage.
-
-
-rsync
-=====
-
-By default we use ``rsync`` to create backups.  We create hard links
-with this tool, to save disk space and still have incremental backups.
-This probably requires a unixy (Linux, Mac OS X) operating system.
-It is based on this article by Mike Rubel:
-http://www.mikerubel.org/computers/rsync_snapshots/
-
-We have not tried this on Windows.  Reports are welcome, but best is
-probably to set the ``use_rsync = false`` option in the backup part.
-Then we simply copy the blobstorage directory.

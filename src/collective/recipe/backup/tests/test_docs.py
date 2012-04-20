@@ -10,7 +10,7 @@ import zc.buildout.tests
 import zc.buildout.testing
 import collective.recipe.backup
 from collective.recipe.backup import repozorunner
-from collective.recipe.backup import copyblobs
+from collective.recipe.backup import repoborunner
 from zope.testing import doctest, renormalizing
 
 # Importing modules so that we can install their eggs in the test buildout.
@@ -64,7 +64,7 @@ def test_suite():
                 checker=checker,
                 ),
             doctest.DocTestSuite(
-                copyblobs,
+                repoborunner,
                 setUp=setUp,
                 tearDown=zc.buildout.testing.buildoutTearDown,
                 optionflags=optionflags,

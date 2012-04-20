@@ -52,7 +52,7 @@ def snapshot_main(bin_dir, blobs, snapshot_location, keep, verbose, gzip):
     """Main method, gets called by generated bin/snapshotbackup."""
     repobo = os.path.join(bin_dir, 'repobo')
 
-    logger.info("Please wait while making snapshot backup: %s to %s",
+    logger.info("Please wait while making snapshot of blobs: %s to %s",
                 blobs, snapshot_location)
     result = os.system(quote_command([repobo] +
                             backup_arguments(blobs, snapshot_location,
@@ -93,7 +93,7 @@ def backup_arguments(blobs=None,
       ...
       RuntimeError: Missing locations.
       >>> backup_arguments(blobs='in', backup_location='out')
-      '--backup - in -r out'
+      '--backup -b in -r out'
       >>> backup_arguments(blobs='in', backup_location='out',
       ...                  full=True)
       '--backup -b in -r out -F'
@@ -232,13 +232,10 @@ def cleanup(backup_location, keep=0):
 
       >>> add_backup('7.blobs')
       >>> add_backup('7-something.deltablobs')
-      >>> add_backup('7.dat')
       >>> add_backup('8.blobs')
       >>> add_backup('8-something.deltablobs')
-      >>> add_backup('8.dat')
       >>> add_backup('9.blobs')
       >>> add_backup('9-something.deltablobs')
-      >>> add_backup('9.dat')
       >>> cleanup(backup_dir, keep=2)
       >>> ls(backup_dir)
       -  8-something.deltablobs

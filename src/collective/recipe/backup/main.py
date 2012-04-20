@@ -48,9 +48,8 @@ def snapshot_main(bin_dir, datafs, snapshot_location, keep, verbose, gzip,
     if not blob_storage_source:
         logger.error("No blob storage source specified")
         sys.exit(1)
-    result = repoborunner.backup_main(bin_dir, blob_storage_source,
-                                      snapshot_location, keep, full, verbose,
-                                      gzip)
+    result = repoborunner.snapshot_main(bin_dir, blob_storage_source,
+                                        snapshot_location, keep, verbose, gzip)
 
 
 def restore_main(bin_dir, datafs, backup_location, verbose, additional,

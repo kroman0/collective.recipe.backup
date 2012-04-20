@@ -214,7 +214,8 @@ def gen_filename(options, ext=None):
     return '%04d-%02d-%02d-%02d-%02d-%02d%s' % t
 
 def listd(base="", prefix="", ll=[]):
-    if prefix: ll.append(prefix)
+    if prefix:
+        ll.append(prefix)
     if os.path.isdir(os.path.join(base, prefix)):
         for i in os.listdir(os.path.join(base, prefix)):
             listd(base, os.path.join(prefix, i), ll)
@@ -345,11 +346,17 @@ def do_recover(options):
         log('--output is required')
         return
     log('Recovering files to %s', options.output)
+    blobfiles = set(listd(options.output, "", []))
+    backupfiles = []
     for item in repofiles:
         f = tarfile.open(item, 'r:*')
         f.extractall(options.output)
+        backupfiles.extend(f.getnames())
         f.close()
         log('Recovered %s', item)
+    oldblobs = blobfiles - set(backupfiles)
+    for blob in oldblobs:
+        os.remove(os.path.join(options.output, blob))
 
 
 def main(argv=None):
